@@ -1,32 +1,24 @@
 package org.example;
 
+import org.example.interfaces.IDecryptor;
+
 import java.util.concurrent.*;
 
 public class Decryptor implements IDecryptor {
-    private static PacketBuilder packetBuilder = new PacketBuilder();
-    private static IProcessor processor = new FakeProcessor();
-    ExecutorService WORKER_THREAD_POOL = Executors.newFixedThreadPool(10);
-    CompletionService<String> service
-            = new ExecutorCompletionService<>(WORKER_THREAD_POOL);
+
+    public static final BlockingQueue<Packet> packetQueue = new ArrayBlockingQueue<>(10);
 
     @Override
-    public void decrypt(byte[] data) {
+    public void decrypt() {
         new Thread(() -> {
-            Packet result = packetBuilder.decode(data);
-//            System.out.println(result);
-            processor.process(result);
-        }).start();
-    }
-
-    public void awaitTerminationAfterShutdown(ExecutorService threadPool) {
-        threadPool.shutdown();
-        try {
-            if (!threadPool.awaitTermination(60, TimeUnit.SECONDS)) {
-                threadPool.shutdownNow();
+            try {
+                byte[] data = FakeReceiver.byteQueue.poll(10L, TimeUnit.SECONDS);
+                Packet result = new PacketBuilder().decode(data);
+                packetQueue.put(result);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-        } catch (InterruptedException ex) {
-            threadPool.shutdownNow();
-            Thread.currentThread().interrupt();
-        }
+
+        }).start();
     }
 }

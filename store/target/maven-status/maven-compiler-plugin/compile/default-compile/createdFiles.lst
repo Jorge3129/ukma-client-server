@@ -1,0 +1,10 @@
+org\example\Main.class
+org\example\StoreCommands$CreateArticleBody.class
+org\example\StoreCommands$CreateGroupBody.class
+org\example\Store.class
+org\example\StoreCommands$SetPriceBody.class
+org\example\StoreCommands.class
+org\example\StoreCommands$IncrementArticleBody.class
+org\example\StoreCommands$DecrementArticleBody.class
+org\example\Group.class
+org\example\Article.class

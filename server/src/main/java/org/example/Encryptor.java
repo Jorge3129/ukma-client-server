@@ -1,17 +1,40 @@
 package org.example;
 
-public class Encryptor implements IEncryptor {
+import org.example.interfaces.IEncryptor;
 
-    private static final IPacketBuilder packetBuilder = new PacketBuilder();
-    private static final ISender sender = new FakeSender();
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+public class Encryptor implements IEncryptor {
+    public static final BlockingQueue<byte[]> responseByteQueue = new ArrayBlockingQueue<>(10);
+
 
     @Override
-    public void encrypt(Packet packet) throws InterruptedException {
-        Thread t = new Thread(() -> {
-            byte[] encodedPacket = packetBuilder.encode(packet);
-            sender.sendMessage(encodedPacket, new NetAddress("http://localhost:3000"));
-        });
-        t.start();
-        t.join();
+    public void encrypt(Packet packet) {
+        try {
+            Thread t = new Thread(() -> {
+                byte[] encodedPacket = new PacketBuilder().encode(packet);
+                new FakeSender().sendMessage(encodedPacket, new NetAddress("http://localhost:3000"));
+            });
+            t.start();
+            t.join();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    @Override
+    public void encrypt() {
+        new Thread(() -> {
+            try {
+                Packet packet = FakeProcessor.responsePacketQueue.poll(10L, TimeUnit.SECONDS);
+                byte[] encodedPacket = new PacketBuilder().encode(packet);
+                responseByteQueue.put(encodedPacket);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
     }
 }

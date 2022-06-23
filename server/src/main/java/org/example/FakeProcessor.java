@@ -1,15 +1,42 @@
 package org.example;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.interfaces.IProcessor;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 public class FakeProcessor implements IProcessor {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private final Store store = new Store();
-    private static final IEncryptor encryptor = new Encryptor();
 
     public Store getStore() {
         return store;
+    }
+
+    public static final BlockingQueue<Packet> responsePacketQueue = new ArrayBlockingQueue<>(10);
+
+
+    @Override
+    public void process() {
+        new Thread(() -> {
+            try {
+                Packet packet = Decryptor.packetQueue.poll(10L, TimeUnit.SECONDS);
+                System.out.println(packet);
+                assert packet != null;
+                Message message = packet.getMessage();
+                execCommand(message);
+                Response response = new Response(ResponseType.OK);
+                byte[] messageData = objectMapper.writeValueAsBytes(response);
+                Message responseMessage = new Message(message.getCommandType(), message.getUserId(), messageData);
+                Packet responsePacket = new Packet(packet.getClientId(), packet.getPacketId() + 1, responseMessage);
+                responsePacketQueue.put(responsePacket);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
     }
 
     @Override
@@ -23,16 +50,13 @@ public class FakeProcessor implements IProcessor {
                     byte[] messageData = objectMapper.writeValueAsBytes(response);
                     Message responseMessage = new Message(message.getCommandType(), message.getUserId(), messageData);
                     Packet responsePacket = new Packet(packet.getClientId(), packet.getPacketId() + 1, responseMessage);
-                    encryptor.encrypt(responsePacket);
-                    encryptor.encrypt(responsePacket);
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             });
             t.start();
             t.join();
-
-        } catch (Exception e) {
+        } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }

@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.interfaces.INetAddress;
+
 public class NetAddress implements INetAddress {
     String url;
 

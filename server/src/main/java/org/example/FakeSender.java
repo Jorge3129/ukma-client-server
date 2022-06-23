@@ -1,7 +1,9 @@
 package org.example;
 
+import org.example.interfaces.INetAddress;
+import org.example.interfaces.ISender;
+
 public class FakeSender implements ISender {
-    private static final IPacketBuilder packetBuilder = new PacketBuilder();
     @Override
     public void sendMessage(byte[] message, INetAddress address) {
         new Thread(() -> {

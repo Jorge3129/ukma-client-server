@@ -1,28 +1,31 @@
 package org.example;
 
-import java.util.List;
+import org.example.interfaces.IReceiver;
+
 import java.util.Random;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 public class FakeReceiver implements IReceiver {
-
-    private static final List<CommandType> VALUES = List.of(CommandType.values());
-    private static final int SIZE = VALUES.size();
     private static final Random RANDOM = new Random();
-    private static final IDecryptor decryptor = new Decryptor();
-    private static final IPacketBuilder packetBuilder = new PacketBuilder();
+    public static final BlockingQueue<byte[]> byteQueue = new ArrayBlockingQueue<>(10);
 
     @Override
     public void receiveMessage() {
-        Packet packet = generatePacket();
-        byte[] encodedPacket = packetBuilder.encode(packet);
-        decryptor.decrypt(encodedPacket);
+        receiveMessage(RANDOM.nextLong());
     }
 
     @Override
     public void receiveMessage(long packetId) {
-        Packet packet = generatePacket(packetId);
-        byte[] encodedPacket = packetBuilder.encode(packet);
-        decryptor.decrypt(encodedPacket);
+        new Thread(() -> {
+            Packet packet = generatePacket(packetId);
+            byte[] encodedPacket = new PacketBuilder().encode(packet);
+            try {
+                byteQueue.put(encodedPacket);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
     }
 
     private Packet generatePacket() {
@@ -34,14 +37,9 @@ public class FakeReceiver implements IReceiver {
     }
 
     private Message generateMessage() {
-        CommandType type = FakeReceiver.generateRandomCommand();
+        CommandType type = CommandType.CREATE_ARTICLE;
         int userId = RANDOM.nextInt();
         return new Message(type, userId, new byte[]{1, 2, 3});
-    }
-
-    private static CommandType generateRandomCommand() {
-//        return VALUES.get(RANDOM.nextInt(SIZE));
-        return CommandType.CREATE_ARTICLE;
     }
 
     public static void main(String[] args) {
