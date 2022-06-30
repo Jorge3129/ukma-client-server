@@ -1,5 +1,9 @@
 package org.example.socket;
 
+import org.example.fakes.FakeReceiver;
+import org.example.fakes.FakeSender;
+import org.example.processing.*;
+
 import java.io.*;
 import java.net.Socket;
 
@@ -21,8 +25,12 @@ public class ServerThread extends Thread {
          while (true) {
             String str = in.readLine();
             if (str.equals("END")) break;
-            System.out.println("echo> " + str);
-            out.println(str);
+            System.out.println("Request: " + str);
+            new Receiver().receiveMessage(str.getBytes());
+            new Decryptor().decrypt();
+            new Processor().process();
+            new Encryptor().encrypt();
+            new Sender().sendMessage(out);
          }
          System.out.println("Closing server socket");
       } catch (IOException e) {

@@ -1,5 +1,8 @@
 package org.example.socket;
 
+import org.example.processing.Generator;
+import org.example.processing.Receiver;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -42,9 +45,9 @@ class ClientThread extends Thread {
    public void run() {
       try {
          for (int i = 0; i < 5; i++) {
-            out.println("Client " + id + ": " + i + " час відправки: " + new Date().getTime());
+            out.println(Generator.generatePacket((byte) id, i));
             String str = in.readLine();
-            System.out.println(str + " час отримання: " + new Date().getTime());
+            System.out.println("Response: \"" + str + "\", received at: " + new Date().getTime());
          }
          out.println("END");
       } catch (IOException e) {

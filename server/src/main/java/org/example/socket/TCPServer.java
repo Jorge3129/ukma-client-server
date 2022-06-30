@@ -18,7 +18,6 @@ public class TCPServer {
                 try {
                     new ServerThread(socket);
                 } catch (IOException e) {
-                    //в разі невдачі закриваємо сокет
                     socket.close();
                 }
             }

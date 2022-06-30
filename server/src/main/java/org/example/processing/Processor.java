@@ -19,7 +19,6 @@ public class Processor {
 
    public static final BlockingQueue<Packet> responsePacketQueue = new ArrayBlockingQueue<>(10);
 
-
    public void process() {
       new Thread(() -> {
          try {
