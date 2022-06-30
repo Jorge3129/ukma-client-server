@@ -37,7 +37,7 @@ public class Message {
         return "Message{" +
                 "commandType=" + commandType +
                 ", userId=" + userId +
-                ", message=" + new String(body) +
+                ", body=" + new String(body) +
                 '}';
     }
 
