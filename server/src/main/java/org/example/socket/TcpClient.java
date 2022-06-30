@@ -1,25 +1,18 @@
 package org.example.socket;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
+import java.net.InetAddress;
 
-public class TcpClient {
+public class TCPClient {
+    private static final int MAX_THREADS = 5;
+    private static final int PORT = 8080;
 
-   public TcpClient(Socket socket) throws IOException {
-      InputStream is = socket.getInputStream();
-      OutputStream os = socket.getOutputStream();
-
-      new Thread(() -> {
-         while (true) {
-            byte[] message = new byte[1024];
-            try {
-               is.read(message);
-            } catch (IOException e) {
-               throw new RuntimeException(e);
-            }
-         }
-      }).start();
-   }
+    public static void main(String[] args) throws IOException, InterruptedException {
+        InetAddress addr = InetAddress.getByName(null);
+        while (true) {
+            if (ClientThread.threadCount() < MAX_THREADS)
+                new ClientThread(addr, PORT);
+            Thread.sleep(100);
+        }
+    }
 }
