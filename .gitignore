@@ -1,1 +1,5 @@
 /.idea
+/target
+/store/target
+/server/target
+/packet-service/target

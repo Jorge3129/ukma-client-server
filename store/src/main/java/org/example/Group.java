@@ -5,11 +5,16 @@ import java.util.List;
 import java.util.Objects;
 
 public class Group {
+    private int id;
     private final String name;
     private final List<Article> articles = new ArrayList<>();
 
     public Group(String name) {
         this.name = name;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getName() {
@@ -30,6 +35,8 @@ public class Group {
                 .findAny()
                 .orElse(null);
     }
+
+
 
     @Override
     public boolean equals(Object o) {
